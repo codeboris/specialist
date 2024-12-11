@@ -1,5 +1,10 @@
-run:
-	go run cmd/api/main.go
+.PHONY:
+.SILENT:
+
+run: build start
 
 build:
 	go build -v ./cmd/api
+
+start:
+	./api
