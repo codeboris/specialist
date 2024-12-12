@@ -15,3 +15,10 @@ make db // Connect to DB
 make init-db // Create DB
 make down-db // Delete DB with save in volume rest-db-data
 ```
+
+## Use migrate
+```
+make migrate-add NAME=<name_migrate>
+make migrate-up
+make migrate-down
+```

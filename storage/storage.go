@@ -19,7 +19,6 @@ func New(cfg *Config) *Storage {
 }
 
 func (s *Storage) Open() error {
-	log.Println(s.config.DatabaseURI)
 	db, err := sql.Open("postgres", s.config.DatabaseURI)
 	if err != nil {
 		return err

@@ -25,7 +25,7 @@ func main() {
 	if err != nil {
 		log.Println("can not find configs file:", err)
 	}
-	log.Println(config)
+
 	server := api.New(config)
 
 	log.Fatal(server.Start())

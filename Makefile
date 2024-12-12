@@ -16,6 +16,15 @@ down-db:
 	docker compose down --remove-orphans
 
 db:
-	docker compose exec postgres psql -U postgres
+	docker compose exec postgres psql -U postgres -d restapi
+
+migrate-add:
+	migrate create -ext sql -dir migrations -seq $(NAME)
+
+migrate-up:
+	migrate -path migrations -database 'postgres://postgres:postgres@localhost:5432/restapi?sslmode=disable' up
+
+migrate-down:
+	migrate -path migrations -database 'postgres://postgres:postgres@localhost:5432/restapi?sslmode=disable' down
 
 .DEFAULT_GOAL:= run
