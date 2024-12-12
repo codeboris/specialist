@@ -11,9 +11,7 @@ type UserRepository struct {
 	storage *Storage
 }
 
-var (
-	tableUser = "users"
-)
+const tableUser = "users"
 
 func (ur *UserRepository) Create(u *models.User) (*models.User, error) {
 	query := fmt.Sprintf("INSERT INTO %s (login, password) VALUES($1, $2) RETURNING id", tableUser)
