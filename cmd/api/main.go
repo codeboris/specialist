@@ -20,10 +20,12 @@ func main() {
 	flag.Parse()
 	log.Println("It`s works!")
 	config := api.NewConfig()
+
 	_, err := toml.DecodeFile(configPath, config)
 	if err != nil {
 		log.Println("can not find configs file:", err)
 	}
+	log.Println(config)
 	server := api.New(config)
 
 	log.Fatal(server.Start())
