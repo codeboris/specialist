@@ -1,0 +1,6 @@
+CREATE TABLE  IF NOT EXISTS articles (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL UNIQUE,
+    author VARCHAR(255) NOT NULL,
+    content VARCHAR(255) NOT NULL
+);
