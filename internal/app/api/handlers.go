@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/codeboris/specialist/internal/app/middleware"
 	"github.com/codeboris/specialist/internal/app/models"
+	"github.com/form3tech-oss/jwt-go"
 	"github.com/gorilla/mux"
 )
 
@@ -237,3 +240,79 @@ func (api *API) PostUserRegister(writer http.ResponseWriter, req *http.Request) 
 }
 
 func (api *API) GetAllUsers(writer http.ResponseWriter, req *http.Request) {}
+
+func (api *API) PostToAuth(writer http.ResponseWriter, req *http.Request) {
+	initHandlers(writer)
+	api.logger.Info("Post to Auth POST /api/v1/user/auth")
+	var userFromJSON models.User
+	err := json.NewDecoder(req.Body).Decode(&userFromJSON)
+	if err != nil {
+		api.logger.Info("Invalid json recieved from client")
+		msg := Message{
+			StatusCode: 400,
+			Message:    "Provided json is invalid",
+			IsError:    true,
+		}
+		writer.WriteHeader(400)
+		json.NewEncoder(writer).Encode(msg)
+		return
+	}
+	userInDB, ok, err := api.storage.User().FindByLogin(userFromJSON.Login)
+	if err != nil {
+		api.logger.Info("Troubles while accessing database table (users) with login, Error: ", err)
+		msg := Message{
+			StatusCode: 500,
+			Message:    "We have some troubles to accessing database. Try again later",
+			IsError:    true,
+		}
+		writer.WriteHeader(500)
+		json.NewEncoder(writer).Encode(msg)
+		return
+	}
+	if !ok {
+		api.logger.Info("User with that Login does not exists.")
+		msg := Message{
+			StatusCode: 400,
+			Message:    "User with that Login does not exists in database. Try register first",
+			IsError:    true,
+		}
+		writer.WriteHeader(400)
+		json.NewEncoder(writer).Encode(msg)
+		return
+	}
+	if userInDB.Password != userFromJSON.Password {
+		api.logger.Info("Invalid credentials to auth")
+		msg := Message{
+			StatusCode: 404,
+			Message:    "Your passwordis invalid",
+			IsError:    true,
+		}
+		writer.WriteHeader(404)
+		json.NewEncoder(writer).Encode(msg)
+		return
+	}
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["exp"] = time.Now().Add(time.Hour * 2).Unix()
+	claims["admin"] = true
+	claims["name"] = userInDB.Login
+	tokenString, err := token.SignedString(middleware.SecretKey)
+	if err != nil {
+		api.logger.Info("Can not claim jwt-token")
+		msg := Message{
+			StatusCode: 500,
+			Message:    "We have some troubles.Try again",
+			IsError:    true,
+		}
+		writer.WriteHeader(500)
+		json.NewEncoder(writer).Encode(msg)
+		return
+	}
+	msg := Message{
+		StatusCode: 201,
+		Message:    tokenString,
+		IsError:    false,
+	}
+	writer.WriteHeader(201)
+	json.NewEncoder(writer).Encode(msg)
+}

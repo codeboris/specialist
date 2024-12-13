@@ -1,6 +1,9 @@
 package api
 
 import (
+	"net/http"
+
+	"github.com/codeboris/specialist/internal/app/middleware"
 	"github.com/codeboris/specialist/storage"
 	"github.com/sirupsen/logrus"
 )
@@ -20,10 +23,14 @@ func (a *API) configLoggerField() error {
 
 func (a *API) configRouterField() {
 	a.router.HandleFunc(prefix+"/articles", a.GetAllArticles).Methods("GET")
-	a.router.HandleFunc(prefix+"/articles/{ID}", a.GetArticleByID).Methods("GET")
+	a.router.Handle(prefix+"/articles/{ID}", middleware.JwtMiddleware.Handler(
+		http.HandlerFunc(a.GetArticleByID),
+	)).Methods("GET")
+	// a.router.HandleFunc(prefix+"/articles/{ID}", a.GetArticleByID).Methods("GET")
 	a.router.HandleFunc(prefix+"/articles/{ID}", a.DeleteArticleByID).Methods("DELETE")
 	a.router.HandleFunc(prefix+"/articles", a.PostArticle).Methods("POST")
 	a.router.HandleFunc(prefix+"/user/register", a.PostUserRegister).Methods("POST")
+	a.router.HandleFunc(prefix+"/user/auth", a.PostToAuth).Methods("POST")
 	a.router.HandleFunc(prefix+"/users", a.GetAllUsers).Methods("GET")
 }
 
